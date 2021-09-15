@@ -26,21 +26,64 @@ authorsRouter.get('/', (req, res) => {
 authorsRouter.get('/:authorid', (req, res) => {
 	// res.send('author is coming.................');
 	const fileData = readFileSync(authorsJsonFilePath);
-	const authorsData = JSON.parse(fileData);
-	const author = authorsData.find(
-		(author) => author.ID === req.params.authorid,
+	const fileAsString = fileData.toString();
+	const fileAsJsonArray = JSON.parse(fileAsString);
+	const author = fileAsJsonArray.find(
+		(author) => author.Id === req.params.authorid,
 	);
-
+	if (!author) {
+		res
+			.status(500)
+			.send({ message: `author was not found ${req.params.authorid}` });
+	}
+	console.log(author);
 	res.send(author);
 });
 // -------------------------post------------------------
 authorsRouter.post('/', (req, res) => {
-	const newAuthor = { ...req.body, Id: uniqid() };
+	// const newAuthor = { ...req.body, Id: uniqid() };
+	const { name, surname, email, dateofbirth } = req.body;
+	const newAuthor = {
+		Id: uniqid(),
+		name,
+		surname,
+		email,
+		dateofbirth,
+		avatar: `https://ui-avatars.com/api/?name=${name}+${surname}`,
+		createdAt: new Date(),
+		updated: new Date(),
+	};
 	const authors = JSON.parse(readFileSync(authorsJsonFilePath));
 	authors.push(newAuthor);
 	writeFileSync(authorsJsonFilePath, JSON.stringify(authors));
 	res.status(201).send({ name: newAuthor.name });
 });
+authorsRouter.post('/checkemail', (req, res) => {
+	const { name, surname, email, dateofbirth } = req.body;
+	const newAuthor = {
+		Id: uniqid(),
+		name,
+		surname,
+		email,
+		dateofbirth,
+		avatar: `https://ui-avatars.com/api/?name=${name}+${surname}`,
+		createdAt: new Date(),
+		updated: new Date(),
+	};
+
+	const authors = JSON.parse(readFileSync(authorsJsonFilePath));
+	const emailIsAlreadyInUse = authors.some(
+		(author) => author.email === req.body.email,
+	);
+	if (emailIsAlreadyInUse) {
+		return res.send('email has been already in use', false);
+	} else {
+		authors.push(newAuthor);
+		writeFileSync(authorsJsonFilePath, JSON.stringify(authors));
+		return res.send(true);
+	}
+});
+// -----------------------put-------------------
 
 authorsRouter.put('/:authorid', (req, res) => {
 	const authors = JSON.parse(readFileSync(authorsJsonFilePath));
@@ -51,6 +94,7 @@ authorsRouter.put('/:authorid', (req, res) => {
 	remainingAuthors.push(updatedAuthor);
 	res.send(updatedAuthor);
 });
+// --------------------------------delete-----------------------
 authorsRouter.delete('/:authorid', (req, res) => {
 	const authorsData = JSON.parse(readFileSync(authorsJsonFilePath));
 	let modifiedAuthors = authorsData.filter(
@@ -60,24 +104,3 @@ authorsRouter.delete('/:authorid', (req, res) => {
 	res.status(204).send('deleted');
 });
 export default authorsRouter;
-// authorsRouter.post('/checkemail', (req, res) => {
-// 	console.log(req.body);
-// 	const authors = JSON.parse(readFileSync(authorsJsonFilePath));
-// 	console.log(authors);
-// 	let emails = authors.map((author) => author.email);
-// 	// if (req.body.email) {
-// 	// 	const authors = JSON.parse(readFileSync(authorsJsonFilePath));
-// 	// 	authors.filter((author) => {
-// 	// 		let uniqueEmail = author.email !== req.body.email;
-// 	// 		console.log(uniqueEmail);
-// 	// 		if (uniqueEmail) {
-// 	// 			const newAuthor = { ...req.body, Id: uniqid() };
-// 	// 			authors.push(newAuthor);
-// 	// 			writeFileSync(authorsJsonFilePath, JSON.stringify(authors));
-// 	// 			res.status(201).send(true);
-// 	// 		}
-// 	// 	});
-// 	// } else {
-// 	res.send('hello');
-// 	// }
-// });

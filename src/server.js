@@ -1,4 +1,5 @@
-import express from 'express'; // importing express
+import express from 'express';
+import cors from 'cors'; // importing express
 // 1=> you need to intsall express and import it and dont forget to write type: module in package.json file ,if you want to use above syntax
 import authorsRouter from './resources/authors/authors.js';
 const server = express(); // express is function
